@@ -5,6 +5,7 @@ import numpy as np
 
 
 # TODO : Add some comments
+# TODO : Classmethods VS static methods ?
 # TODO : PYTHONHASHSEED for reproductible dictionaries order -- https://docs.python.org/3/using/cmdline.html#envvar-PYTHONHASHSEED
 class Reproductible_Block:
     """
@@ -25,11 +26,11 @@ class Reproductible_Block:
     # With clause handling
     def __enter__(self):
         if self.reset_state_after:
-            self.initial_state = get_random_state()
+            self.initial_state = Reproductible_Block.get_random_state()
 
         # TODO : Add warning when reference_state is not set ?
         if Reproductible_Block.reference_state:
-            set_random_state(Reproductible_Block.reference_state)
+            Reproductible_Block.set_random_state(Reproductible_Block.reference_state)
 
         # Modify the random state by performing a serie of random operations.
         # This is done to create unique random state paths using the same initial state for different code blocks
@@ -40,7 +41,7 @@ class Reproductible_Block:
     # With clause handling
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.reset_state_after:
-            set_random_state(self.initial_state)
+            Reproductible_Block.set_random_state(self.initial_state)
 
     # Decorator handling
     def __call__(self, fct, *args):
@@ -51,55 +52,41 @@ class Reproductible_Block:
 
     @classmethod
     def set_seed(cls, seed):
-        set_random_seed(seed)
+        random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+
+        # FIXME : Use manual_seed_all ? (For multiple gpu usecase)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed(seed)
 
         cls.set_reference_state()
 
     @classmethod
     def set_reference_state(cls):
-        cls.reference_state = get_random_state()
+        cls.reference_state = Reproductible_Block.get_random_state()
 
-    @staticmethod
-    def get_random_state():
-        # Helper method so we can import only this class
-        return get_random_state()
+    @classmethod
+    def get_random_state(cls):
+        state = {
+            'py': random.getstate(),
+            'np': np.random.get_state(),
+            'torch': torch.random.get_rng_state()
+        }
 
-    @staticmethod
-    def set_random_state(state):
-        # Helper method so we can import only this class
-        set_random_state(state)
+        if torch.cuda.is_available():
+            state['torch_cuda'] = torch.cuda.get_rng_state()
 
+        return state
 
-def set_random_seed(seed):
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
+    @classmethod
+    def set_random_state(cls, state):
+        random.setstate(state['py'])
+        np.random.set_state(state['np'])
+        torch.random.set_rng_state(state['torch'])
 
-    # FIXME : Use manual_seed_all ? (For multiple gpu usecase)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed(seed)
-
-
-def get_random_state():
-    states = {
-        'py': random.getstate(),
-        'np': np.random.get_state(),
-        'torch': torch.random.get_rng_state()
-    }
-
-    if torch.cuda.is_available():
-        states['torch_cuda'] = torch.cuda.get_rng_state()
-
-    return states
-
-
-def set_random_state(states):
-    random.setstate(states['py'])
-    np.random.set_state(states['np'])
-    torch.random.set_rng_state(states['torch'])
-
-    if torch.cuda.is_available() and 'torch_cuda' in states:
-        torch.cuda.set_rng_state(states['torch_cuda'])
+        if torch.cuda.is_available() and 'torch_cuda' in state:
+            torch.cuda.set_rng_state(state['torch_cuda'])
 
 
 def modify_random_state(modify_seed):
