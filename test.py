@@ -26,8 +26,12 @@ def test3():
         print(f"test 3 Torch Random value : {torch.rand((1))[0]}")
         print(f"test 3 Numpy random value : {np.random.random()}")
 
+    with Reproductible_Block(42):
+        print(f"test 3 Random value : {random.random()}")
+        print(f"test 3 Torch Random value : {torch.rand((1))[0]}")
+        print(f"test 3 Numpy random value : {np.random.random()}")
 
 Reproductible_Block.set_seed(42)
-test1("42", "Is the answer")
+test1("42", "Hello")
 test2()
 test3()

@@ -4,8 +4,6 @@ import torch
 import numpy as np
 
 
-# TODO : Add some comments
-# TODO : Classmethods VS static methods ?
 # TODO : PYTHONHASHSEED for reproductible dictionaries order -- https://docs.python.org/3/using/cmdline.html#envvar-PYTHONHASHSEED
 class Reproductible_Block:
     """
@@ -14,13 +12,13 @@ class Reproductible_Block:
     # Class attribute
     reference_state = None
 
-    def __init__(self, block_seed=0, reset_state_after=False):
+    def __init__(self, block_seed=0, reset_state_after=False, reset_state_before=True):
         if callable(block_seed):
-            # FIXME : Not sur RuntimeError is the best exception
             raise RuntimeError("Block seed must be passed to the decorator Ex: @Reproducible_Block(block_seed=42)")
 
         self.block_seed = block_seed
         self.reset_state_after = reset_state_after
+        self.reset_state_before = reset_state_before
         self.initial_state = None
 
     # With clause handling
@@ -29,7 +27,7 @@ class Reproductible_Block:
             self.initial_state = Reproductible_Block.get_random_state()
 
         # TODO : Add warning when reference_state is not set ?
-        if Reproductible_Block.reference_state:
+        if Reproductible_Block.reference_state and self.reset_state_before:
             Reproductible_Block.set_random_state(Reproductible_Block.reference_state)
 
         # Modify the random state by performing a serie of random operations.
@@ -56,7 +54,6 @@ class Reproductible_Block:
         np.random.seed(seed)
         torch.manual_seed(seed)
 
-        # FIXME : Use manual_seed_all ? (For multiple gpu usecase)
         if torch.cuda.is_available():
             torch.cuda.manual_seed(seed)
 
