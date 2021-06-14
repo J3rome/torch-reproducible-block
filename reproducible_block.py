@@ -12,7 +12,7 @@ class Reproducible_Block:
     # Class attribute
     reference_state = None
 
-    def __init__(self, block_seed=None, reset_state_after=False, reset_state_before=True):
+    def __init__(self, block_seed=None, reset_state_after=False):
         assert block_seed is not None, \
             "Block seed must be passed to the decorator/with clause Ex: @Reproducible_Block(block_seed=42)"
 
@@ -21,7 +21,6 @@ class Reproducible_Block:
 
         self.block_seed = block_seed
         self.reset_state_after = reset_state_after
-        self.reset_state_before = reset_state_before
         self.initial_state = None
 
     # With clause handling
@@ -29,8 +28,7 @@ class Reproducible_Block:
         if self.reset_state_after:
             self.initial_state = Reproducible_Block.get_random_state()
 
-        if self.reset_state_before:
-            Reproducible_Block.reset_to_reference_state()
+        Reproducible_Block.reset_to_reference_state()
 
         # Modify the random state by performing a serie of random operations.
         # This is done to create unique random state paths using the same initial state for different code blocks
