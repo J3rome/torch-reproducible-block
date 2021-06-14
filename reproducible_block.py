@@ -5,16 +5,19 @@ import numpy as np
 
 
 # TODO : PYTHONHASHSEED for reproductible dictionaries order -- https://docs.python.org/3/using/cmdline.html#envvar-PYTHONHASHSEED
-class Reproductible_Block:
+class Reproducible_Block:
     """
     Python, Numpy and PyTorch random states manager statement
     """
     # Class attribute
     reference_state = None
 
-    def __init__(self, block_seed=0, reset_state_after=False, reset_state_before=True):
-        if callable(block_seed):
-            raise RuntimeError("Block seed must be passed to the decorator Ex: @Reproducible_Block(block_seed=42)")
+    def __init__(self, block_seed=None, reset_state_after=False, reset_state_before=True):
+        assert block_seed is not None, \
+            "Block seed must be passed to the decorator/with clause Ex: @Reproducible_Block(block_seed=42)"
+
+        assert Reproducible_Block.reference_state is not None, \
+            "Seed & Reference state must be set prior to the creation of a Reproducible Block : Reproducible_Block.set_seed(42)"
 
         self.block_seed = block_seed
         self.reset_state_after = reset_state_after
@@ -24,11 +27,10 @@ class Reproductible_Block:
     # With clause handling
     def __enter__(self):
         if self.reset_state_after:
-            self.initial_state = Reproductible_Block.get_random_state()
+            self.initial_state = Reproducible_Block.get_random_state()
 
-        # TODO : Add warning when reference_state is not set ?
-        if Reproductible_Block.reference_state and self.reset_state_before:
-            Reproductible_Block.set_random_state(Reproductible_Block.reference_state)
+        if self.reset_state_before:
+            Reproducible_Block.reset_to_reference_state()
 
         # Modify the random state by performing a serie of random operations.
         # This is done to create unique random state paths using the same initial state for different code blocks
@@ -39,7 +41,7 @@ class Reproductible_Block:
     # With clause handling
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.reset_state_after:
-            Reproductible_Block.set_random_state(self.initial_state)
+            Reproducible_Block.set_random_state(self.initial_state)
 
     # Decorator handling
     def __call__(self, fct, *args):
@@ -47,6 +49,7 @@ class Reproductible_Block:
             with self:
                 return fct(*args)
         return wrapped_fct
+
 
     @classmethod
     def set_seed(cls, seed):
@@ -61,7 +64,14 @@ class Reproductible_Block:
 
     @classmethod
     def set_reference_state(cls):
-        cls.reference_state = Reproductible_Block.get_random_state()
+        cls.reference_state = cls.get_random_state()
+
+    @classmethod
+    def reset_to_reference_state(cls):
+        assert cls.reference_state is not None, \
+            "Reference random state must be set before reseting state"
+
+        cls.set_random_state(cls.reference_state)
 
     @classmethod
     def get_random_state(cls):
