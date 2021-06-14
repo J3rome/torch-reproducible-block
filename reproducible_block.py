@@ -45,7 +45,7 @@ class Reproductible_Block:
     def __call__(self, fct, *args):
         def wrapped_fct(*args):
             with self:
-                fct(*args)
+                return fct(*args)
         return wrapped_fct
 
     @classmethod
