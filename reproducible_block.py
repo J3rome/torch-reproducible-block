@@ -26,7 +26,7 @@ class Reproducible_Block:
     # With clause handling
     def __enter__(self):
         if self.reset_state_after:
-            self.initial_state = Reproducible_Block.get_random_state()
+            self.initial_state = Reproducible_Block._get_random_state()
 
         Reproducible_Block.reset_to_reference_state()
 
@@ -34,12 +34,12 @@ class Reproducible_Block:
         # This is done to create unique random state paths using the same initial state for different code blocks
         # If we were to set the same state before every operation, the same operation at different stage of the model
         # would always have the same result (Ex : Weight initialisation)
-        modify_random_state(self.block_seed)
+        _modify_random_state(self.block_seed)
 
     # With clause handling
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.reset_state_after:
-            Reproducible_Block.set_random_state(self.initial_state)
+            Reproducible_Block._set_random_state(self.initial_state)
 
     # Decorator handling
     def __call__(self, fct, *args):
@@ -58,21 +58,21 @@ class Reproducible_Block:
         if torch.cuda.is_available():
             torch.cuda.manual_seed(seed)
 
-        cls.set_reference_state()
+        cls._set_reference_state()
 
     @classmethod
-    def set_reference_state(cls):
-        cls.reference_state = cls.get_random_state()
+    def _set_reference_state(cls):
+        cls.reference_state = cls._get_random_state()
 
     @classmethod
     def reset_to_reference_state(cls):
         assert cls.reference_state is not None, \
             "Reference random state must be set before reseting state"
 
-        cls.set_random_state(cls.reference_state)
+        cls._set_random_state(cls.reference_state)
 
     @classmethod
-    def get_random_state(cls):
+    def _get_random_state(cls):
         state = {
             'py': random.getstate(),
             'np': np.random.get_state(),
@@ -85,7 +85,7 @@ class Reproducible_Block:
         return state
 
     @classmethod
-    def set_random_state(cls, state):
+    def _set_random_state(cls, state):
         random.setstate(state['py'])
         np.random.set_state(state['np'])
         torch.random.set_rng_state(state['torch'])
@@ -94,7 +94,7 @@ class Reproducible_Block:
             torch.cuda.set_rng_state(state['torch_cuda'])
 
 
-def modify_random_state(modify_seed):
+def _modify_random_state(modify_seed):
     # Modify the random state by performing a serie of random operations.
     for i in range(modify_seed):
         random.randint(1, 10)
