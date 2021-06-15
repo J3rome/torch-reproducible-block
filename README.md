@@ -1,12 +1,14 @@
 # Torch-reproducible-block
 
-Random number generation is hard to control when experimenting with neural networks. Setting a random seed only get us so far. Each random operation affects the random number generator state. Changes to the model hyper-parameters or architecture can affect how each layer is initialised, the regularisation techniques, how the data is presented to the network during training and more.
+Random number generation is hard to control when experimenting with neural networks. Setting a random seed only get us so far. Each random operation affects the random number generator state. 
 
 
 
-This package aims to reduce **variability** by limiting **side effects** caused by **random number generation**.
+Changes to the model hyper-parameters or architecture can affect how each layer is initialised, the regularisation techniques, how the data is presented to the network during training and more.
 
-The main goal is to **limit the changes** to the rest of the network when **experimenting** with different hyper-parameters.
+
+
+This package aims to reduce **variability** by limiting **side effects** caused by **random number generation**. The main goal is to **limit the changes** to the rest of the network when **experimenting** with different hyper-parameters.
 
 ---
 
@@ -18,11 +20,7 @@ The weight initialisation of a layer constitute a random operation. The initiali
 
 
 
-In this small toy model, the **initial weights** of the fully connected layers will be **different** if we have a different number of convolutive layers.
-
-The initialisation of a **pre-trained feature extractor** might also comprises random operation which will **affect the rest of the network**. 
-
-A different random state will also affect the **dataloading** process since it also rely on random operations to select random examples when creating batches.
+In this small toy model, the **initial weights** of the fully connected layers will be **different** if we have a different number of convolutive layers. The initialisation of a **pre-trained feature extractor** might also comprises random operation which will **affect the rest of the network**. A different random state will also affect the **dataloading** process since it also rely on random operations to select random examples when creating batches.
 
 
 
@@ -36,17 +34,13 @@ We isolate different parts of the network by wrapping them inside a `Reproducibl
 
 ## How does it work ?
 
-`Reproducible_Block.set_seed(SEED_VALUE)` must be called **before** any random operation. 
-
-This will set the `python`, `numpy` and `torch` seeds and will save a copy of the `initial random number generator state`.
+`Reproducible_Block.set_seed(SEED_VALUE)` must be called **before** any random operation. This will set the `python`, `numpy` and `torch` seeds and will save a copy of the `initial random number generator state`.
 
 
 
-When entering a `Reproducible_Block` the random number generator state is reset to the `initial state`. 
+When entering a `Reproducible_Block` the random number generator state is reset to the `initial state`. The state is then mutated according to the `Block Seed` value ensuring that each block have a different state. To mutate the state, we simply run `X` random operations where `X` is `Block Seed`. 
 
-The state is then mutated according to the `Block Seed` value ensuring that each block have a different state. 
 
-To mutate the state, we simply run `X` random operations where `X` is `Block Seed`.
 
 Feel free to take at look at the code, it's only about 100 lines.
 
