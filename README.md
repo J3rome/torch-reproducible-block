@@ -10,8 +10,6 @@ Changes to the model hyper-parameters or architecture can affect how each layer 
 
 This package aims to reduce **variability** by limiting **side effects** caused by **random number generation**. The main goal is to **limit the changes** to the rest of the network when **experimenting** with different hyper-parameters.
 
----
-
 ## What is the problem ?
 
 The weight initialisation of a layer constitute a random operation. The initialisation order therefore have an impact on subsequent layers.
@@ -43,8 +41,6 @@ When entering a `Reproducible_Block` the random number generator state is reset 
 
 
 Feel free to take at look at the code, it's only about 100 lines.
-
----
 
 ## Installation
 
