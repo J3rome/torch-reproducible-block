@@ -1,33 +1,25 @@
 # Torch-reproducible-block
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 Random number generation is hard to control when experimenting with neural networks. Setting a random seed only get us so far. Each random operation affects the random number generator state. 
 
-
-
 Changes to the model hyper-parameters or architecture can affect how each layer is initialised, the regularisation techniques, how the data is presented to the network during training and more.
-
-
 
 This package aims to reduce **variability** by limiting **side effects** caused by **random number generation**. The main goal is to **limit the changes** to the rest of the network when **experimenting** with different hyper-parameters.
 
 ## What is the problem ?
-
 The weight initialisation of a layer constitute a random operation. The initialisation order therefore have an impact on subsequent layers.
 
-![](img/problem.png)
-
+![Problem Definition](https://github.com/J3rome/torch-reproducible-block/raw/master/img/problem.png)
 
 
 In this small toy model, the **initial weights** of the fully connected layers will be **different** if we have a different number of convolutive layers. The initialisation of a **pre-trained feature extractor** might also comprises random operation which will **affect the rest of the network**. A different random state will also affect the **dataloading** process since it also rely on random operations to select random examples when creating batches.
 
 
-
 ## Solution
-
 We isolate different parts of the network by wrapping them inside a `Reproducible_Block` 
 
-![](img/solution.png)
-
+![Reproducible Block Solution](https://github.com/J3rome/torch-reproducible-block/raw/master/img/solution.png)
 
 
 ## How does it work ?
@@ -35,15 +27,12 @@ We isolate different parts of the network by wrapping them inside a `Reproducibl
 `Reproducible_Block.set_seed(SEED_VALUE)` must be called **before** any random operation. This will set the `python`, `numpy` and `torch` seeds and will save a copy of the `initial random number generator state`.
 
 
-
 When entering a `Reproducible_Block` the random number generator state is reset to the `initial state`. The state is then mutated according to the `Block Seed` value ensuring that each block have a different state. To mutate the state, we simply run `X` random operations where `X` is `Block Seed`. 
-
 
 
 Feel free to take at look at the code, it's only about 100 lines.
 
 ## Installation
-
 The package can be installed via pip :
 
 ```bash
@@ -60,7 +49,6 @@ numpy
 
 
 ## Usage
-
 ```python
 from reproducible_block import Reproducible_Block
 
@@ -90,9 +78,7 @@ if __name__ == "__main__":
 ```
 
 
-
 Reproducible block can also be used as a function decorator  :
-
 ```python
 @Reproducible_Block(block_seed=128)
 def train_model(model, dataloader, ...):
@@ -100,9 +86,7 @@ def train_model(model, dataloader, ...):
 ```
 
 
-
 ## Remarks
-
 - Using a different `initial seed` (Via `Reproducible_Block.set_seed()`), will result in a different random state for each `Reproducible_Block`.
 - The `block seed` is "part of the code". You should not attempt to tweak it the way we do with "normal seed". Changing the `initial seed` is what you want to do in order to create different initial conditions for your training.
 - Using the same `block seed` for different `Reproducible_Block` will result in the same random state. 
@@ -110,7 +94,6 @@ def train_model(model, dataloader, ...):
 - Was tested on `Ubuntu 18.04` with `python 3.6`. Should not have any problems running on other platforms. Fill up an issue if you have any problems.
 
 ## Other sources of randomness
-
 This package won't make your research 100% reproducible. It simply aim to isolate part of your program to side effects.
 
 - Setting the `PYTHONHASHSEED` environment variable is always a good idea.
@@ -118,6 +101,5 @@ This package won't make your research 100% reproducible. It simply aim to isolat
 - Different version of `python`, `Cuda`, `Cudnn` and libraries can affect reproducibility
 
 ## Contributing
-
 The code is pretty simple, have a look at it and if you have improvements ideas feel free to submit a pull request !
 
