@@ -67,7 +67,7 @@ class My_model(nn.Module):
     
 if __name__ == "__main__":
     # Will set seed and save the initial random state
-	Reproducible_Block.set_seed(42)
+    Reproducible_Block.set_seed(42)
     
     model = My_model()
     # Data loading and other configurations which might do random operations....
